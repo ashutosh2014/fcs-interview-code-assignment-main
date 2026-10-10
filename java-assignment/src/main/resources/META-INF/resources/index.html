@@ -24,7 +24,7 @@
     <script type="text/javascript">
       var app = angular.module("ProductManagement", []);
 
-      //Controller Part
+      //Controller Product Part
       app.controller("ProductManagementController", function ($scope, $http) {
 
         //Initialize page with default data which is blank in this example
@@ -107,9 +107,99 @@
           $scope.form.id = -1;
         }
       });
+
+      //Controller Store Part
+      app.controller("StoreManagementController", function ($scope, $http) {
+
+        //Initialize page with default data which is blank in this example
+        $scope.stores = [];
+
+        $scope.form = {
+          id: -1,
+          name: "",
+          quantityProductsInStock: 0
+        };
+
+        //Now load the data from server
+        _refreshPageData();
+
+        //HTTP POST/PUT methods for add/edit store
+        $scope.update = function () {
+          var method = "";
+          var url = "";
+          var data = {};
+          if ($scope.form.id == -1) {
+            //Id is absent so add store - POST operation
+            method = "POST";
+            url = '/store';
+            data.name = $scope.form.name;
+            data.quantityProductsInStock = $scope.form.quantityProductsInStock;
+          } else {
+            //If Id is present, it's edit operation - PUT operation
+            method = "PUT";
+            url = '/store/' + $scope.form.id;
+            data.name = $scope.form.name;
+            data.quantityProductsInStock = $scope.form.quantityProductsInStock;
+          }
+
+          $http({
+            method: method,
+            url: url,
+            data: angular.toJson(data),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then(_success, _error);
+        };
+
+        //HTTP DELETE- delete store by id
+        $scope.remove = function (store) {
+          $http({
+            method: 'DELETE',
+            url: '/store/' + store.id
+          }).then(_success, _error);
+        };
+
+        //In case of edit stores, populate form with product data
+        $scope.edit = function (store) {
+          $scope.form.name = store.name;
+          $scope.form.id = store.id;
+          $scope.form.quantityProductsInStock = store.quantityProductsInStock;
+        };
+
+          /* Private Methods */
+        //HTTP GET- get all products collection
+        function _refreshPageData() {
+          $http({
+            method: 'GET',
+            url: '/store'
+          }).then(function successCallback(response) {
+            $scope.stores = response.data;
+          }, function errorCallback(response) {
+            console.log(response.statusText);
+          });
+        }
+
+        function _success(response) {
+          _refreshPageData();
+          _clearForm()
+        }
+
+        function _error(response) {
+          alert(response.data.message || response.statusText);
+        }
+
+        //Clear the form
+        function _clearForm() {
+          $scope.form.name = "";
+          $scope.form.quantityProductsInStock = 0;
+          $scope.form.id = -1;
+        }
+      });
+
     </script>
 </head>
-<body ng-app="ProductManagement" ng-controller="ProductManagementController">
+<body ng-app="ProductManagement">
 
 <div class="container">
     <h1>Java Code Assignment</h1>
@@ -117,21 +207,42 @@
         This management interface invokes the CRUD service endpoint, which interacts with a database using JPA and several other well known libraries.
     </p>
 
-    <h3>Add/Edit an Product to the Warehouse</h3>
-    <form ng-submit="update()">
-        <div class="row">
-            <div class="col-6"><input type="text" placeholder="Name" ng-model="form.name" size="60"/></div>
-        </div>
-        <input type="submit" value="Save"/>
-    </form>
+    <div ng-controller="ProductManagementController">
+        <h3>Add/Edit a Product</h3>
+        <form ng-submit="update()">
+            <div class="row">
+                <div class="col-6"><input type="text" placeholder="Name" ng-model="form.name" size="60"/></div>
+            </div>
+            <input type="submit" value="Save"/>
+        </form>
 
-    <h3>Product List</h3>
-    <div class="row">
-        <div class="col-2">Name</div>
+        <h3>Product List</h3>
+        <div class="row" ng-repeat="product in products">
+            <div class="col-2">{{ product.name }}</div>
+            <div class="col-8"><a ng-click="edit( product )" class="btn">Edit</a> <a ng-click="remove( product )" class="btn">Remove</a>
+        </div>
     </div>
-    <div class="row" ng-repeat="product in products">
-        <div class="col-2">{{ product.name }}</div>
-        <div class="col-8"><a ng-click="edit( product )" class="btn">Edit</a> <a ng-click="remove( product )" class="btn">Remove</a>
+
+    <hr/>
+
+    <div ng-controller="StoreManagementController">
+        <h3>Add/Edit a Store</h3>
+        <p>Store changes are persisted first; legacy sync runs after commit (see server logs).</p>
+        <form ng-submit="update()">
+            <div class="row">
+                <div class="col-6"><input type="text" placeholder="Name" ng-model="form.name" size="60"/></div>
+                <div class="col-6"><input type="number" placeholder="Quantity in stock" ng-model="form.quantityProductsInStock"/></div>
+            </div>
+            <input type="submit" value="Save"/>
+        </form>
+
+        <h3>Store List</h3>
+        <div class="row" ng-repeat="store in stores">
+            <div class="col-4">{{ store.name }} (stock: {{ store.quantityProductsInStock }})</div>
+            <div class="col-8">
+                <a ng-click="edit(store)" class="btn">Edit</a>
+                <a ng-click="remove(store)" class="btn">Remove</a>
+            </div>
         </div>
     </div>
 
