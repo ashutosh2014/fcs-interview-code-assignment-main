@@ -370,6 +370,107 @@
         }
       });
 
+      //Controller Fulfillment Part
+      app.controller("FulfillmentManagementController", function ($scope, $http) {
+
+        $scope.links = [];
+        $scope.stores = [];
+        $scope.products = [];
+        $scope.warehouses = [];
+
+        $scope.form = {
+          storeId: "",
+          productId: "",
+          warehouseBusinessUnitCode: ""
+        };
+
+        _refreshLookups();
+        _refreshPageData();
+
+        $scope.update = function () {
+          if (!$scope.form.storeId || !$scope.form.productId || !$scope.form.warehouseBusinessUnitCode) {
+            alert('Store, product and warehouse are required.');
+            return;
+          }
+          var data = {};
+          data.storeId = $scope.form.storeId;
+          data.productId = $scope.form.productId;
+          data.warehouseBusinessUnitCode = $scope.form.warehouseBusinessUnitCode;
+
+          $http({
+            method: "POST",
+            url: '/fulfillment',
+            data: angular.toJson(data),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then(_success, _error);
+        };
+
+        $scope.remove = function (link) {
+          $http({
+            method: 'DELETE',
+            url: '/fulfillment/' + link.id
+          }).then(_success, _error);
+        };
+
+        $scope.storeName = function (storeId) {
+          for (var i = 0; i < $scope.stores.length; i++) {
+            if ($scope.stores[i].id == storeId) {
+              return $scope.stores[i].name;
+            }
+          }
+          return storeId;
+        };
+
+        $scope.productName = function (productId) {
+          for (var i = 0; i < $scope.products.length; i++) {
+            if ($scope.products[i].id == productId) {
+              return $scope.products[i].name;
+            }
+          }
+          return productId;
+        };
+
+        function _refreshLookups() {
+          $http.get('/store').then(function (response) {
+            $scope.stores = response.data;
+          });
+          $http.get('/product').then(function (response) {
+            $scope.products = response.data;
+          });
+          $http.get('/warehouse').then(function (response) {
+            $scope.warehouses = response.data;
+          });
+        }
+
+        function _refreshPageData() {
+          $http({
+            method: 'GET',
+            url: '/fulfillment'
+          }).then(function successCallback(response) {
+            $scope.links = response.data;
+          }, function errorCallback(response) {
+            console.log(response.statusText);
+          });
+        }
+
+        function _success(response) {
+          _refreshPageData();
+          _clearForm()
+        }
+
+        function _error(response) {
+          alert(formatHttpError(response));
+        }
+
+        function _clearForm() {
+          $scope.form.storeId = "";
+          $scope.form.productId = "";
+          $scope.form.warehouseBusinessUnitCode = "";
+        }
+      });
+
     </script>
 </head>
 <body ng-app="ProductManagement">
@@ -444,6 +545,26 @@
                 <a ng-click="prepareReplace(warehouse)" class="btn">Replace</a>
                 <a ng-click="remove(warehouse)" class="btn">Remove</a>
             </div>
+        </div>
+    </div>
+
+    <hr/>
+
+    <div ng-controller="FulfillmentManagementController">
+        <h3>Product fulfillment </h3>
+        <form ng-submit="update()">
+            <div class="row">
+                <div class="col-4"><select ng-model="form.storeId"><option value="">Select store</option><option ng-repeat="s in stores" value="{{s.id}}">{{s.name}}</option></select></div>
+                <div class="col-4"><select ng-model="form.productId"><option value="">Select product</option><option ng-repeat="p in products" value="{{p.id}}">{{p.name}}</option></select></div>
+                <div class="col-4"><select ng-model="form.warehouseBusinessUnitCode"><option value="">Select warehouse</option><option ng-repeat="w in warehouses" value="{{w.businessUnitCode}}">{{w.businessUnitCode}}</option></select></div>
+            </div>
+            <input type="submit" value="Associate"/>
+        </form>
+
+        <h3>Fulfillment links</h3>
+        <div class="row" ng-repeat="link in links">
+            <div class="col-8">store {{ storeName(link.storeId) }} · product {{ productName(link.productId) }} · warehouse {{ link.warehouseBusinessUnitCode }}</div>
+            <div class="col-4"><a ng-click="remove(link)" class="btn">Remove</a></div>
         </div>
     </div>
 
