@@ -24,6 +24,34 @@
     <script type="text/javascript">
       var app = angular.module("ProductManagement", []);
 
+      function formatHttpError(response) {
+        if (!response) {
+          return 'Request failed';
+        }
+        var data = response.data;
+        if (data) {
+          if (typeof data === 'string') {
+            return data;
+          }
+          if (data.error) {
+            return data.error;
+          }
+          if (data.message) {
+            return data.message;
+          }
+          if (data.detail) {
+            return data.detail;
+          }
+          if (data.title) {
+            return data.title;
+          }
+        }
+        if (response.status) {
+          return 'HTTP ' + response.status + ': ' + (response.statusText || 'Request failed');
+        }
+        return response.statusText || 'Request failed';
+      }
+
       //Controller Product Part
       app.controller("ProductManagementController", function ($scope, $http) {
 
@@ -40,6 +68,10 @@
 
         //HTTP POST/PUT methods for add/edit products
         $scope.update = function () {
+          if (!$scope.form.name || !$scope.form.name.trim()) {
+            alert('Product name is required.');
+            return;
+          }
           var method = "";
           var url = "";
           var data = {};
@@ -47,12 +79,12 @@
             //Id is absent so add products - POST operation
             method = "POST";
             url = '/product';
-            data.name = $scope.form.name;
+            data.name = $scope.form.name.trim();
           } else {
             //If Id is present, it's edit operation - PUT operation
             method = "PUT";
             url = '/product/' + $scope.form.id;
-            data.name = $scope.form.name;
+            data.name = $scope.form.name.trim();
           }
 
           $http({
@@ -98,7 +130,7 @@
         }
 
         function _error(response) {
-          alert(response.data.message || response.statusText);
+          alert(formatHttpError(response));
         }
 
         //Clear the form
@@ -125,6 +157,10 @@
 
         //HTTP POST/PUT methods for add/edit store
         $scope.update = function () {
+          if (!$scope.form.name || !$scope.form.name.trim()) {
+            alert('Store name is required.');
+            return;
+          }
           var method = "";
           var url = "";
           var data = {};
@@ -132,13 +168,13 @@
             //Id is absent so add store - POST operation
             method = "POST";
             url = '/store';
-            data.name = $scope.form.name;
+            data.name = $scope.form.name.trim();
             data.quantityProductsInStock = $scope.form.quantityProductsInStock;
           } else {
             //If Id is present, it's edit operation - PUT operation
             method = "PUT";
             url = '/store/' + $scope.form.id;
-            data.name = $scope.form.name;
+            data.name = $scope.form.name.trim();
             data.quantityProductsInStock = $scope.form.quantityProductsInStock;
           }
 
@@ -186,7 +222,7 @@
         }
 
         function _error(response) {
-          alert(response.data.message || response.statusText);
+          alert(formatHttpError(response));
         }
 
         //Clear the form
@@ -194,6 +230,143 @@
           $scope.form.name = "";
           $scope.form.quantityProductsInStock = 0;
           $scope.form.id = -1;
+        }
+      });
+
+      //Controller Warehouse Part
+      app.controller("WarehouseManagementController", function ($scope, $http) {
+
+        //Initialize page with default data which is blank in this example
+        $scope.warehouses = [];
+
+        $scope.locations = [
+          "ZWOLLE-001",
+          "ZWOLLE-002",
+          "AMSTERDAM-001",
+          "AMSTERDAM-002",
+          "TILBURG-001",
+          "HELMOND-001",
+          "EINDHOVEN-001",
+          "VETSBY-001"
+        ];
+
+        $scope.form = {
+          key: "",
+          businessUnitCode: "",
+          location: "",
+          capacity: 0,
+          stock: 0
+        };
+
+        //Now load the data from server
+        _refreshPageData();
+
+        //HTTP POST method for add warehouse
+        $scope.update = function () {
+          if (!$scope.form.businessUnitCode || !$scope.form.businessUnitCode.trim()) {
+            alert('Business unit code is required.');
+            return;
+          }
+          if (!$scope.form.location || !$scope.form.location.trim()) {
+            alert('Location is required.');
+            return;
+          }
+          var data = {};
+          data.businessUnitCode = $scope.form.businessUnitCode.trim();
+          data.location = $scope.form.location;
+          data.capacity = $scope.form.capacity;
+          data.stock = $scope.form.stock;
+
+          $http({
+            method: "POST",
+            url: '/warehouse',
+            data: angular.toJson(data),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then(_success, _error);
+        };
+
+        //HTTP POST method for replace warehouse
+        $scope.replace = function () {
+          if (!$scope.form.key || !$scope.form.key.trim()) {
+            alert('Select a warehouse to replace first.');
+            return;
+          }
+          if (!$scope.form.location || !$scope.form.location.trim()) {
+            alert('Location is required.');
+            return;
+          }
+          var data = {};
+          data.location = $scope.form.location;
+          data.capacity = $scope.form.capacity;
+          data.stock = $scope.form.stock;
+
+          $http({
+            method: "POST",
+            url: '/warehouse/' + $scope.form.key + '/replacement',
+            data: angular.toJson(data),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then(_success, _error);
+        };
+
+        //HTTP DELETE- archive warehouse by business unit code
+        $scope.remove = function (warehouse) {
+          $http({
+            method: 'DELETE',
+            url: '/warehouse/' + warehouse.businessUnitCode
+          }).then(_success, _error);
+        };
+
+        //In case of edit warehouses, populate form with warehouse data
+        $scope.edit = function (warehouse) {
+          $scope.form.businessUnitCode = warehouse.businessUnitCode;
+          $scope.form.key = warehouse.businessUnitCode;
+          $scope.form.location = warehouse.location;
+          $scope.form.capacity = warehouse.capacity;
+          $scope.form.stock = warehouse.stock;
+        };
+
+        //Populate form for replace (stock must match active warehouse)
+        $scope.prepareReplace = function (warehouse) {
+          $scope.form.businessUnitCode = warehouse.businessUnitCode;
+          $scope.form.key = warehouse.businessUnitCode;
+          $scope.form.location = warehouse.location;
+          $scope.form.capacity = warehouse.capacity;
+          $scope.form.stock = warehouse.stock;
+        };
+
+          /* Private Methods */
+        //HTTP GET- get all warehouses collection
+        function _refreshPageData() {
+          $http({
+            method: 'GET',
+            url: '/warehouse'
+          }).then(function successCallback(response) {
+            $scope.warehouses = response.data;
+          }, function errorCallback(response) {
+            console.log(response.statusText);
+          });
+        }
+
+        function _success(response) {
+          _refreshPageData();
+          _clearForm()
+        }
+
+        function _error(response) {
+          alert(formatHttpError(response));
+        }
+
+        //Clear the form
+        function _clearForm() {
+          $scope.form.businessUnitCode = "";
+          $scope.form.location = "";
+          $scope.form.capacity = 0;
+          $scope.form.stock = 0;
+          $scope.form.key = "";
         }
       });
 
@@ -242,6 +415,34 @@
             <div class="col-8">
                 <a ng-click="edit(store)" class="btn">Edit</a>
                 <a ng-click="remove(store)" class="btn">Remove</a>
+            </div>
+        </div>
+    </div>
+
+    <hr/>
+
+    <div ng-controller="WarehouseManagementController">
+        <h3>Add/Edit a Warehouse</h3>
+        <form ng-submit="update()">
+            <div class="row">
+                <div class="col-6"><input type="text" placeholder="Business unit code" ng-model="form.businessUnitCode" size="60"/></div>
+                <div class="col-6"><select ng-model="form.location"><option value="">Select location</option><option ng-repeat="loc in locations" value="{{loc}}">{{loc}}</option></select></div>
+            </div>
+            <div class="row">
+                <div class="col-6"><input type="number" placeholder="Capacity" ng-model="form.capacity"/></div>
+                <div class="col-6"><input type="number" placeholder="Stock" ng-model="form.stock"/></div>
+            </div>
+            <input type="submit" value="Save"/>
+            <input type="button" value="Replace" ng-click="replace()" ng-disabled="form.key == ''"/>
+        </form>
+
+        <h3>Warehouse List</h3>
+        <div class="row" ng-repeat="warehouse in warehouses">
+            <div class="col-4">{{ warehouse.businessUnitCode }} @ {{ warehouse.location }} (cap: {{ warehouse.capacity }}, stock: {{ warehouse.stock }})</div>
+            <div class="col-8">
+                <a ng-click="edit(warehouse)" class="btn">Edit</a>
+                <a ng-click="prepareReplace(warehouse)" class="btn">Replace</a>
+                <a ng-click="remove(warehouse)" class="btn">Remove</a>
             </div>
         </div>
     </div>

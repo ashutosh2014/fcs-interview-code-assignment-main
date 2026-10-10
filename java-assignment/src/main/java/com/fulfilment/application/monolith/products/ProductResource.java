@@ -51,6 +51,9 @@ public class ProductResource {
     if (product.id != null) {
       throw new WebApplicationException("Id was invalidly set on request.", 422);
     }
+    if (product.name == null || product.name.isBlank()) {
+      throw new WebApplicationException("Product Name was not set on request.", 422);
+    }
 
     productRepository.persist(product);
     return Response.ok(product).status(201).build();
