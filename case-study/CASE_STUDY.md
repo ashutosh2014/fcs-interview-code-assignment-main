@@ -119,12 +119,33 @@ Questions:
 
 
 ## Scenario 5: Cost Control in Warehouse Replacement
-**Situation**: The company is planning to replace an existing Warehouse with a new one. The new Warehouse will reuse the Business Unit Code of the old Warehouse. The old Warehouse will be archived, but its cost history must be preserved.
+**Situation**: The company is planning to replace an existing Warehouse with a new one. 
+The new Warehouse will reuse the Business Unit Code of the old Warehouse. The old Warehouse will be archived, but its cost history must be preserved.
 
-**Task**: Discuss the cost control aspects of replacing a Warehouse. Why is it important to preserve cost history and how this relates to keeping the new Warehouse operation within budget?
+**Task**: Discuss the cost control aspects of replacing a Warehouse. Why is it important to preserve cost history and 
+how this relates to keeping the new Warehouse operation within budget?
 
 **Questions you may have and considerations:**
-[ fill here your answer ]
+
+Replace is a continuity of the business unit, not a delete-and-recreate. The same business unit code identifies the area to finance and operations, 
+but physically its new with new capacity, stock, and cost profile as reflected in this application by archiving the old data and creating a new active one under the same code.
+
+Why preserve cost history:
+ - Trend analysis: Compare pre- and post-replace efficiency of warehousr (cost per unit, rent per pallet) without losing years of baseline.
+ - Budgeting: Next year’s budget for that BU should not treat the site as new with no history; planners need archived-period actuals plus a transition period.
+ - Audit and tax: Depreciation, lease termination, and one-time move costs must stay tied to the old warehouse instance while ongoing run-rate attaches to the new one.
+ - Accountability: Separate project costs (build-out, migration) from steady-state run cost of the replacement.
+
+Keeping the new operation within budget:
+ - Set the replacement business case upfront: expected savings or service improvement vs capex and dual-running during cutover.
+ - During overlap, allocate dual costs explicitly (old + new) so the BU code does not hide overspend.
+ - After cutover, monitor run-rate KPIs against a budget line that uses historical median from the archived warehouse as a reference, adjusted for new capacity/location terms.
+ - In systems design: store costs against warehouseId, not only the live row—mirroring how operational data archives the old warehouse while reusing the code.
+
+Questions:
+ - Are there one-time migration costs booked to the BU, to a project code, or capitalized?
+ - How long is dual operation expected, and who owns that budget?
+ - Should fulfillment associations transfer automatically to the new warehouse record, and how does that affect allocated transport/storage cost?
 
 ## Instructions for Candidates
 Before starting the case study, read the [BRIEFING.md](BRIEFING.md) to quickly understand the domain, entities, business rules, and other relevant details.
