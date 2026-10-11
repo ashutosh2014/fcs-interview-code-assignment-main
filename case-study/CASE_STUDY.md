@@ -28,12 +28,41 @@ That surface looks like marketing and UX, but underneath it is the same allocati
 and promotion needs to roll up to which store generated revenue versus cost.
 
 ## Scenario 2: Cost Optimization Strategies
-**Situation**: The company wants to identify and implement cost optimization strategies for its fulfillment operations. The goal is to reduce overall costs without compromising service quality.
+**Situation**: The company wants to identify and implement cost optimization strategies for its fulfillment operations. 
+The goal is to reduce overall costs without compromising service quality.
 
-**Task**: Discuss potential cost optimization strategies for fulfillment operations and expected outcomes from that. How would you identify, prioritize and implement these strategies?
+**Task**: Discuss potential cost optimization strategies for fulfillment operations and expected outcomes from that. 
+How would you identify, prioritize and implement these strategies?
 
 **Questions you may have and considerations:**
-[ fill here your answer ]
+
+I will start by checking the current order network and where the company is spending the money relative to the value it delivers.
+ - Network design: Determine whether the number and locations of Warehouses are appropriate for demand, geographic coverage, and capacity requirements.
+ - Utilization: Identify underutilized Warehouses, excess inventory, inefficient storage, and unnecessary Store–Warehouse associations.
+ - Operational processes: Identify opportunities to improve deliverying, picking, devlivery guy  allocation, and Warehouse replacement decisions.
+
+How I would identify, prioritize, and implement:
+ - Baseline: Current cost by warehouse, store, and location using the same allocation model. 
+ - Opportunity sizing: Pareto analysis—which sites or lanes drive 80% of cost or variance? 
+ - Prioritize with impact × feasibility × risk to service; quick wins (utilization, slotting) before structural changes (closing or replacing warehouses). 
+ - Pilot on one location or business unit; measure cost and KPIs for a full cycle (e.g. a festival season). 
+ - Scale with playbooks; update master data (warehouse replace, fulfillment links) and budgets when the network changes.
+
+Questions:
+
+- What service levels are non-negotiable (same-day to store, max warehouses per store/product)?
+- Are optimization goals global or per country/location?
+- Who approves structural changes (replace warehouse, change fulfillment associations)?
+- Are we optimizing for total network cost, individual Warehouse profitability, or cost per unit delivered?
+
+
+Considerations: Optimization without accurate tracking (Scenario 1) optimizes the wrong thing. 
+Constraints in this codebase—max warehouses per location, capacity vs stock, fulfillment limits—are proxies for service and risk;
+cost initiatives must respect them or explicitly ask to change the business rules.
+
+From Arumstreet: we used store-level analytics (which reels and offers moved which SKUs) to stop funding low-ROI campaigns. 
+The same mindset applies here—prioritize cost initiatives where store–warehouse fulfillment links and volume data show clear waste 
+(e.g. serving a store from too many warehouses, or offers that drive high-touch picks without margin).
 
 ## Scenario 3: Integration with Financial Systems
 **Situation**: The Cost Control Tool needs to integrate with existing financial systems to ensure accurate and timely cost data. The integration should support real-time data synchronization and reporting.
