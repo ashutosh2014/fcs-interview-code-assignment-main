@@ -65,12 +65,30 @@ The same mindset applies here—prioritize cost initiatives where store–wareho
 (e.g. serving a store from too many warehouses, or offers that drive high-touch picks without margin).
 
 ## Scenario 3: Integration with Financial Systems
-**Situation**: The Cost Control Tool needs to integrate with existing financial systems to ensure accurate and timely cost data. The integration should support real-time data synchronization and reporting.
+**Situation**: The Cost Control Tool needs to integrate with existing financial systems to ensure accurate and timely cost data. 
+The integration should support real-time data synchronization and reporting.
 
-**Task**: Discuss the importance of integrating the Cost Control Tool with financial systems. What benefits the company would have from that and how would you ensure seamless integration and data synchronization?
+**Task**: Discuss the importance of integrating the Cost Control Tool with financial systems. 
+What benefits the company would have from that and how would you ensure seamless integration and data synchronization?
 
 **Questions you may have and considerations:**
-[ fill here your answer ]
+
+Operations and finance may use different tools; without integration, teams maintain parallel spreadsheets and figures never match. 
+Integration turns the Cost Control Tool as single source of truth
+
+Will define real-time sync
+ - Operational real-time sync: Events streamed as they happen (products moved, delivery guy  booked) for dashboards.
+ - Financial real-time: Often real-time accruals + batch reconciliation like razorypay settlements at period end; ERP remains authoritative for posted amounts.
+
+Seamless sync:
+ - Master data: Warehouse business unit code, store ID, location, product—aligned with ERP cost centers / profit centers needs mapping table.
+ - Idempotent interfaces: Inbound/outbound messages with business keys so retries do not duplicate postings for kafka may be consumers .
+ - Event-driven or scheduled ETL  depending on ERP capabilities; prefer events for activity, batches for heavy allocation runs like razorpay settlements.
+ - Reconciliation jobs: Compare sums by dimension between tool and ERP; flag drift above tolerance like razorpay settlements..
+
+Questions:
+ - Which ERP/GL (SAP, Oracle, NetSuite, etc.) and what integration patterns are already approved?
+ - Is the ERP master for cost centers or the operational system?
 
 ## Scenario 4: Budgeting and Forecasting
 **Situation**: The company needs to develop budgeting and forecasting capabilities for its fulfillment operations. The goal is to predict future costs and allocate resources effectively.
