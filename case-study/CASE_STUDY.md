@@ -5,10 +5,27 @@
 The costs include labor, inventory, transportation, and overhead expenses.
 
 **Task**: Discuss the challenges in accurately tracking and allocating costs in a fulfillment environment. 
-Think about what are important considerations for this, what are previous experiences that you have you could related to this problem and elaborate some questions and considerations
+Think about what are important considerations for this, what are previous experiences 
+that you have you could related to this problem and elaborate some questions and considerations
 
 **Questions you may have and considerations:**
-[ fill here your answer ]
+
+Challenges
+ - Labor costs: the delivery guy deliverying across multiple warehouse/stores, this makes salary and accounting difficult
+ - Delivery costs: One-delivery can make delivery to diff warehouse, cost to be divided fairly
+ - Direct cost: Rent, Admin Exp, Utilites like electricty, 
+ - Inventory Cost: Holding Product i.e. inventory cost
+ - Historical Data: when warehouse replaced, the Business Unit mapped to new one, may have old warehouse historical data associated
+
+Points to consider
+ - Direct Cost to align with warehouse/store
+ - Cost evaluation should be allocated using correct delivery cost, delivery guy hours rate, weight of delivery, no of delevieres. Each Cost should have amount, cost type, date, and the relevant Warehouse or Store identifier.
+ - Historical cost records should reference to the specific entity instance, not just its Business Unit Code.
+
+Related experience — Arumstreet(jewellery e-commerce): I built a platform where customers browse a store listing, shop by store section,
+and discover products through Instagram-style reels, while merchants run everything from an admin with analytics and offers tied to specific stores. 
+That surface looks like marketing and UX, but underneath it is the same allocation problem in miniature: every order, reel view, 
+and promotion needs to roll up to which store generated revenue versus cost.
 
 ## Scenario 2: Cost Optimization Strategies
 **Situation**: The company wants to identify and implement cost optimization strategies for its fulfillment operations. The goal is to reduce overall costs without compromising service quality.
