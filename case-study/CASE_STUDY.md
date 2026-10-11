@@ -96,7 +96,27 @@ Questions:
 **Task**: Discuss the importance of budgeting and forecasting in fulfillment operations and what would you take into account designing a system to support accurate budgeting and forecasting?
 
 **Questions you may have and considerations:**
-[ fill here your answer ]
+
+Budgeting sets Targets and Accountability while forecasting sets expectations as reality unfolds (volume, inflation, network changes). 
+In fulfillment, both are sensitive to volume drivers (stores opened, SKU count, seasonality) and structural events (new warehouse, replace, archive).
+
+Why it matters:
+ - Plan capacity at each Location  before approving new warehouses.
+ - Anticipate labor and transport when fulfillment associations change (more stores can be served from a warehouse).
+ - Support replace decisions with compare old vs new facility cost.
+
+Design considerations:
+ - Driver-based models: Cost = f(orders, units, kms), not only last year + 5%.
+ - Hierarchy: Roll up warehouse → location → region; tie to store and product where needed.
+ - Actuals feed-back: Close the loop from Cost Allocation and Tracking and Financial Systems to reforecast automatically when variance exceeds threshold.
+ - Time granularity: Monthly for finance; weekly for ops during peak.
+ - Assumptions registry: Document fuel rates, wages agreements, renting so forecasts are explainable.
+
+Questions:
+ - Is budgeting top-down finance allocates envelopes or bottom-up site managers submit?
+ - How far ahead annual budget + rolling 12-month forecast?
+ - Which events in this domain must trigger budget revision - new store, replace warehouse, cap change on location?
+
 
 ## Scenario 5: Cost Control in Warehouse Replacement
 **Situation**: The company is planning to replace an existing Warehouse with a new one. The new Warehouse will reuse the Business Unit Code of the old Warehouse. The old Warehouse will be archived, but its cost history must be preserved.
