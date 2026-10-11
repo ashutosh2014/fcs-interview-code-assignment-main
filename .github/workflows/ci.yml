@@ -7,17 +7,17 @@ on:
 
 jobs:
   test-and-coverage:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: java-assignment
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -27,11 +27,85 @@ jobs:
         run: chmod +x mvnw
 
       - name: Run unit tests and enforce 80% coverage
+        id: verify
         run: ./mvnw -B verify
+
+      - name: Publish coverage to job summary
+        if: always()
+        run: |
+          CSV="target/site/jacoco/jacoco.csv"
+          THRESHOLD="80"
+          {
+            echo "## Code coverage"
+            echo ""
+            if [ ! -f "$CSV" ]; then
+              echo "JaCoCo report was not generated (Maven \`verify\` likely failed before the report step)."
+              exit 0
+            fi
+            eval "$(
+              awk -F',' -v threshold="$THRESHOLD" '
+                NR > 1 {
+                  pkg = $2
+                  lineMiss[pkg] += $8
+                  lineCov[pkg] += $9
+                  totalLineMiss += $8
+                  totalLineCov += $9
+                  instrMiss += $4
+                  instrCov += $5
+                }
+                END {
+                  totalLines = totalLineMiss + totalLineCov
+                  linePct = totalLines > 0 ? (100 * totalLineCov / totalLines) : 0
+                  instrTotal = instrMiss + instrCov
+                  instrPct = instrTotal > 0 ? (100 * instrCov / instrTotal) : 0
+                  status = linePct >= threshold ? "passed" : "failed"
+                  printf "LINE_PCT=%.1f\n", linePct
+                  printf "LINE_COV=%d\n", totalLineCov
+                  printf "LINE_MISS=%d\n", totalLineMiss
+                  printf "INSTR_PCT=%.1f\n", instrPct
+                  printf "GATE=%s\n", status
+                }
+              ' "$CSV"
+            )"
+            if [ "$GATE" = "passed" ]; then
+              echo "### ✅ Coverage gate: **${LINE_PCT}%** line coverage (minimum ${THRESHOLD}%)"
+            else
+              echo "### ❌ Coverage gate: **${LINE_PCT}%** line coverage (minimum ${THRESHOLD}%)"
+            fi
+            echo ""
+            echo "| Metric | Covered | Missed | Total | Rate |"
+            echo "| --- | ---: | ---: | ---: | ---: |"
+            echo "| **Lines (bundle)** | ${LINE_COV} | ${LINE_MISS} | $((LINE_COV + LINE_MISS)) | **${LINE_PCT}%** |"
+            echo "| Instructions (bundle) | — | — | — | ${INSTR_PCT}% |"
+            echo ""
+            echo "### By package"
+            echo "| Package | Line coverage | Covered | Missed |"
+            echo "| --- | ---: | ---: | ---: |"
+            awk -F',' '
+              NR > 1 {
+                pkg = $2
+                lm[pkg] += $8
+                lc[pkg] += $9
+              }
+              END {
+                for (pkg in lm) {
+                  total = lm[pkg] + lc[pkg]
+                  pct = total > 0 ? (100 * lc[pkg] / total) : 0
+                  printf "| `%s` | %.0f%% | %d | %d |\n", pkg, pct, lc[pkg], lm[pkg]
+                }
+              }
+            ' "$CSV" | sort
+            echo ""
+            echo "Download the HTML report from the **jacoco-report** artifact on this workflow run."
+            if [ "${{ steps.verify.outcome }}" != "success" ]; then
+              echo ""
+              echo "> Maven \`verify\` did not succeed; fix failing tests or coverage before merging."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload JaCoCo report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: jacoco-report
           path: java-assignment/target/site/jacoco/
