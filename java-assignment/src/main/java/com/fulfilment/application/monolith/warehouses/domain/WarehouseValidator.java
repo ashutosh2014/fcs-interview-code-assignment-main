@@ -6,6 +6,7 @@ import com.fulfilment.application.monolith.warehouses.domain.ports.LocationResol
 import com.fulfilment.application.monolith.warehouses.domain.ports.WarehouseStore;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.WebApplicationException;
+import java.util.Objects;
 
 @ApplicationScoped
 public class WarehouseValidator {
@@ -27,6 +28,32 @@ public class WarehouseValidator {
       throw new WebApplicationException("Invalid warehouse location.", 400);
     }
     return location;
+  }
+
+  public Warehouse requireActiveWarehouse(String businessUnitCode) {
+    if (businessUnitCode == null || businessUnitCode.isBlank()) {
+      throw new WebApplicationException("Business unit code is required.", 400);
+    }
+    Warehouse active = warehouseStore.findByBusinessUnitCode(businessUnitCode);
+    if (active == null) {
+      throw new WebApplicationException(
+          "Warehouse with business unit code of " + businessUnitCode + " does not exist.", 404);
+    }
+    return active;
+  }
+
+  public void validateForReplacement(Warehouse previous, Warehouse newWarehouse) {
+    if (previous == null) {
+      throw new WebApplicationException("Previous warehouse is required for replacement.", 400);
+    }
+    if (!Objects.equals(previous.stock, newWarehouse.stock)) {
+      throw new WebApplicationException(
+          "Replacement warehouse stock must match the previous warehouse stock.", 400);
+    }
+    if (newWarehouse.capacity == null || newWarehouse.capacity < previous.stock) {
+      throw new WebApplicationException(
+          "Replacement warehouse capacity must accommodate the previous warehouse stock.", 400);
+    }
   }
 
   public void validateForCreation(Warehouse warehouse, Location location) {

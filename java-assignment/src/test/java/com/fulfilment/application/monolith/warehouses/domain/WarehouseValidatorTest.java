@@ -49,6 +49,34 @@ class WarehouseValidatorTest {
   }
 
   @Test
+  void validateForReplacementRejectsMismatchedStock() {
+    Warehouse previous = warehouse("MWH.001", "ZWOLLE-001", 100, 10);
+    Warehouse replacement = warehouse("MWH.001", "ZWOLLE-001", 100, 5);
+
+    assertThrows(
+        WebApplicationException.class, () -> validator.validateForReplacement(previous, replacement));
+  }
+
+  @Test
+  void validateForReplacementRejectsInsufficientCapacity() {
+    Warehouse previous = warehouse("MWH.001", "ZWOLLE-001", 100, 10);
+    Warehouse replacement = warehouse("MWH.001", "ZWOLLE-001", 5, 10);
+
+    assertThrows(
+        WebApplicationException.class, () -> validator.validateForReplacement(previous, replacement));
+  }
+
+  @Test
+  void requireActiveWarehouseReturnsWarehouse() {
+    Warehouse active = warehouse("MWH.001", "ZWOLLE-001", 100, 10);
+    when(warehouseStore.findByBusinessUnitCode("MWH.001")).thenReturn(active);
+
+    Warehouse found = validator.requireActiveWarehouse("MWH.001");
+
+    assertEquals("MWH.001", found.businessUnitCode);
+  }
+
+  @Test
   void validateLocationConstraintsRejectsStockAboveCapacity() {
     Location location = new Location("HELMOND-001", 1, 45);
 

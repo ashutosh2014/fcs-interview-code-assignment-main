@@ -8,7 +8,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @ApplicationScoped
 public class ReplaceWarehouseUseCase implements ReplaceWarehouseOperation {
@@ -34,15 +33,7 @@ public class ReplaceWarehouseUseCase implements ReplaceWarehouseOperation {
           404);
     }
 
-    if (!Objects.equals(previous.stock, newWarehouse.stock)) {
-      throw new WebApplicationException(
-          "Replacement warehouse stock must match the previous warehouse stock.", 400);
-    }
-    if (newWarehouse.capacity == null || newWarehouse.capacity < previous.stock) {
-      throw new WebApplicationException(
-          "Replacement warehouse capacity must accommodate the previous warehouse stock.", 400);
-    }
-
+    warehouseValidator.validateForReplacement(previous, newWarehouse);
     var location = warehouseValidator.resolveLocation(newWarehouse.location);
 
     previous.archivedAt = LocalDateTime.now();

@@ -8,7 +8,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fulfilment.application.monolith.warehouses.domain.WarehouseValidator;
 import com.fulfilment.application.monolith.warehouses.domain.models.Warehouse;
+import com.fulfilment.application.monolith.warehouses.domain.ports.LocationResolver;
 import com.fulfilment.application.monolith.warehouses.domain.ports.WarehouseStore;
 import jakarta.ws.rs.WebApplicationException;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,12 +23,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ArchiveWarehouseUseCaseTest {
 
   @Mock WarehouseStore warehouseStore;
+  @Mock LocationResolver locationResolver;
 
   ArchiveWarehouseUseCase archiveWarehouseUseCase;
 
   @BeforeEach
   void setUp() {
-    archiveWarehouseUseCase = new ArchiveWarehouseUseCase(warehouseStore);
+    WarehouseValidator warehouseValidator = new WarehouseValidator(warehouseStore, locationResolver);
+    archiveWarehouseUseCase = new ArchiveWarehouseUseCase(warehouseStore, warehouseValidator);
   }
 
   @Test
