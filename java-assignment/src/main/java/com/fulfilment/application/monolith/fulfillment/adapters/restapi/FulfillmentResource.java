@@ -1,5 +1,9 @@
-package com.fulfilment.application.monolith.fulfillment;
+package com.fulfilment.application.monolith.fulfillment.adapters.restapi;
 
+import com.fulfilment.application.monolith.fulfillment.domain.models.FulfillmentAssociation;
+import com.fulfilment.application.monolith.fulfillment.domain.ports.AssociateFulfillmentOperation;
+import com.fulfilment.application.monolith.fulfillment.domain.ports.FulfillmentStore;
+import com.fulfilment.application.monolith.fulfillment.domain.ports.RemoveFulfillmentOperation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -18,20 +22,22 @@ import java.util.List;
 @Consumes("application/json")
 public class FulfillmentResource {
 
-  @Inject FulfillmentService fulfillmentService;
+  @Inject FulfillmentStore fulfillmentStore;
+  @Inject AssociateFulfillmentOperation associateFulfillmentOperation;
+  @Inject RemoveFulfillmentOperation removeFulfillmentOperation;
 
   @GET
   public List<FulfillmentAssociation> list(@QueryParam("storeId") Long storeId) {
     if (storeId == null) {
-      return FulfillmentAssociation.listAll();
+      return fulfillmentStore.getAll();
     }
-    return FulfillmentAssociation.list("storeId = ?1", storeId);
+    return fulfillmentStore.listByStore(storeId);
   }
 
   @POST
   public Response create(FulfillmentAssociation request) {
     FulfillmentAssociation created =
-        fulfillmentService.associate(
+        associateFulfillmentOperation.associate(
             request.storeId, request.productId, request.warehouseBusinessUnitCode);
     return Response.status(201).entity(created).build();
   }
@@ -39,7 +45,7 @@ public class FulfillmentResource {
   @DELETE
   @Path("{id}")
   public Response delete(Long id) {
-    fulfillmentService.remove(id);
+    removeFulfillmentOperation.remove(id);
     return Response.status(204).build();
   }
 }

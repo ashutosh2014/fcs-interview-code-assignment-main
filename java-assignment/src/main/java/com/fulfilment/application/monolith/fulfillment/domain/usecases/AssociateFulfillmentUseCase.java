@@ -1,17 +1,25 @@
-package com.fulfilment.application.monolith.fulfillment;
+package com.fulfilment.application.monolith.fulfillment.domain.usecases;
 
+import com.fulfilment.application.monolith.fulfillment.domain.models.FulfillmentAssociation;
+import com.fulfilment.application.monolith.fulfillment.domain.ports.AssociateFulfillmentOperation;
+import com.fulfilment.application.monolith.fulfillment.domain.ports.FulfillmentStore;
+import com.fulfilment.application.monolith.fulfillment.domain.validators.FulfillmentValidator;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
 @ApplicationScoped
-public class FulfillmentService {
+public class AssociateFulfillmentUseCase implements AssociateFulfillmentOperation {
 
   private final FulfillmentValidator fulfillmentValidator;
+  private final FulfillmentStore fulfillmentStore;
 
-  public FulfillmentService(FulfillmentValidator fulfillmentValidator) {
+  public AssociateFulfillmentUseCase(
+      FulfillmentValidator fulfillmentValidator, FulfillmentStore fulfillmentStore) {
     this.fulfillmentValidator = fulfillmentValidator;
+    this.fulfillmentStore = fulfillmentStore;
   }
 
+  @Override
   @Transactional
   public FulfillmentAssociation associate(
       Long storeId, Long productId, String warehouseBusinessUnitCode) {
@@ -30,13 +38,7 @@ public class FulfillmentService {
     association.storeId = storeId;
     association.productId = productId;
     association.warehouseBusinessUnitCode = warehouseBusinessUnitCode;
-    association.persist();
+    fulfillmentStore.create(association);
     return association;
-  }
-
-  @Transactional
-  public void remove(Long id) {
-    FulfillmentAssociation association = fulfillmentValidator.requireAssociation(id);
-    association.delete();
   }
 }

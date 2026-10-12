@@ -1,7 +1,9 @@
-package com.fulfilment.application.monolith.fulfillment;
+package com.fulfilment.application.monolith.fulfillment.domain.validators;
 
-import com.fulfilment.application.monolith.products.ProductRepository;
-import com.fulfilment.application.monolith.stores.Store;
+import com.fulfilment.application.monolith.fulfillment.domain.models.FulfillmentAssociation;
+import com.fulfilment.application.monolith.fulfillment.domain.ports.FulfillmentStore;
+import com.fulfilment.application.monolith.fulfillment.domain.ports.ProductCatalog;
+import com.fulfilment.application.monolith.fulfillment.domain.ports.StoreCatalog;
 import com.fulfilment.application.monolith.warehouses.domain.ports.WarehouseStore;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.WebApplicationException;
@@ -12,16 +14,24 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class FulfillmentValidator {
 
-  static final int MAX_WAREHOUSES_PER_PRODUCT_PER_STORE = 2;
-  static final int MAX_WAREHOUSES_PER_STORE = 3;
-  static final int MAX_PRODUCT_TYPES_PER_WAREHOUSE = 5;
+  public static final int MAX_WAREHOUSES_PER_PRODUCT_PER_STORE = 2;
+  public static final int MAX_WAREHOUSES_PER_STORE = 3;
+  public static final int MAX_PRODUCT_TYPES_PER_WAREHOUSE = 5;
 
+  private final FulfillmentStore fulfillmentStore;
+  private final StoreCatalog storeCatalog;
+  private final ProductCatalog productCatalog;
   private final WarehouseStore warehouseStore;
-  private final ProductRepository productRepository;
 
-  public FulfillmentValidator(WarehouseStore warehouseStore, ProductRepository productRepository) {
+  public FulfillmentValidator(
+      FulfillmentStore fulfillmentStore,
+      StoreCatalog storeCatalog,
+      ProductCatalog productCatalog,
+      WarehouseStore warehouseStore) {
+    this.fulfillmentStore = fulfillmentStore;
+    this.storeCatalog = storeCatalog;
+    this.productCatalog = productCatalog;
     this.warehouseStore = warehouseStore;
-    this.productRepository = productRepository;
   }
 
   public void validateAssociateRequest(Long storeId, Long productId, String warehouseBusinessUnitCode) {
@@ -35,10 +45,10 @@ public class FulfillmentValidator {
   }
 
   public void validateEntitiesExist(Long storeId, Long productId, String warehouseBusinessUnitCode) {
-    if (Store.findById(storeId) == null) {
+    if (!storeCatalog.exists(storeId)) {
       throw new WebApplicationException("Store with id of " + storeId + " does not exist.", 404);
     }
-    if (productRepository.findById(productId) == null) {
+    if (!productCatalog.exists(productId)) {
       throw new WebApplicationException("Product with id of " + productId + " does not exist.", 404);
     }
     if (warehouseStore.findByBusinessUnitCode(warehouseBusinessUnitCode) == null) {
@@ -50,18 +60,14 @@ public class FulfillmentValidator {
 
   public FulfillmentAssociation findExistingAssociation(
       Long storeId, Long productId, String warehouseBusinessUnitCode) {
-    return FulfillmentAssociation.find(
-            "storeId = ?1 and productId = ?2 and warehouseBusinessUnitCode = ?3",
-            storeId,
-            productId,
-            warehouseBusinessUnitCode)
-        .firstResult();
+    return fulfillmentStore.findByStoreProductAndWarehouse(
+        storeId, productId, warehouseBusinessUnitCode);
   }
 
   public void validateAssociationLimits(
       Long storeId, Long productId, String warehouseBusinessUnitCode) {
     List<FulfillmentAssociation> forStoreProduct =
-        FulfillmentAssociation.list("storeId = ?1 and productId = ?2", storeId, productId);
+        fulfillmentStore.listByStoreAndProduct(storeId, productId);
     Set<String> warehousesForStoreProduct =
         forStoreProduct.stream()
             .map(link -> link.warehouseBusinessUnitCode)
@@ -74,7 +80,7 @@ public class FulfillmentValidator {
           400);
     }
 
-    List<FulfillmentAssociation> forStore = FulfillmentAssociation.list("storeId = ?1", storeId);
+    List<FulfillmentAssociation> forStore = fulfillmentStore.listByStore(storeId);
     Set<String> warehousesForStore =
         forStore.stream().map(link -> link.warehouseBusinessUnitCode).collect(Collectors.toSet());
     if (!warehousesForStore.contains(warehouseBusinessUnitCode)
@@ -84,7 +90,7 @@ public class FulfillmentValidator {
     }
 
     List<FulfillmentAssociation> forWarehouse =
-        FulfillmentAssociation.list("warehouseBusinessUnitCode = ?1", warehouseBusinessUnitCode);
+        fulfillmentStore.listByWarehouse(warehouseBusinessUnitCode);
     Set<Long> productsForWarehouse =
         forWarehouse.stream().map(link -> link.productId).collect(Collectors.toSet());
     if (!productsForWarehouse.contains(productId)
@@ -96,7 +102,7 @@ public class FulfillmentValidator {
   }
 
   public FulfillmentAssociation requireAssociation(Long id) {
-    FulfillmentAssociation association = FulfillmentAssociation.findById(id);
+    FulfillmentAssociation association = fulfillmentStore.getById(id);
     if (association == null) {
       throw new WebApplicationException(
           "Fulfillment association with id of " + id + " does not exist.", 404);

@@ -1,8 +1,10 @@
-package com.fulfilment.application.monolith.fulfillment;
+package com.fulfilment.application.monolith.fulfillment.domain.validators;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fulfilment.application.monolith.products.ProductRepository;
+import com.fulfilment.application.monolith.fulfillment.domain.ports.FulfillmentStore;
+import com.fulfilment.application.monolith.fulfillment.domain.ports.ProductCatalog;
+import com.fulfilment.application.monolith.fulfillment.domain.ports.StoreCatalog;
 import com.fulfilment.application.monolith.warehouses.domain.ports.WarehouseStore;
 import jakarta.ws.rs.WebApplicationException;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,14 +16,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class FulfillmentValidatorTest {
 
+  @Mock FulfillmentStore fulfillmentStore;
+  @Mock StoreCatalog storeCatalog;
+  @Mock ProductCatalog productCatalog;
   @Mock WarehouseStore warehouseStore;
-  @Mock ProductRepository productRepository;
 
   FulfillmentValidator fulfillmentValidator;
 
   @BeforeEach
   void setUp() {
-    fulfillmentValidator = new FulfillmentValidator(warehouseStore, productRepository);
+    fulfillmentValidator =
+        new FulfillmentValidator(fulfillmentStore, storeCatalog, productCatalog, warehouseStore);
   }
 
   @Test

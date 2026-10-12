@@ -163,8 +163,7 @@
                         <exclude>com/fulfilment/**/adapters/**</exclude>
                         <exclude>com/fulfilment/**/*Resource*.class</exclude>
                         <exclude>com/fulfilment/**/Legacy*.class</exclude>
-                        <exclude>com/fulfilment/**/FulfillmentAssociation.class</exclude>
-                        <exclude>com/fulfilment/**/FulfillmentResource.class</exclude>
+                        <exclude>com/fulfilment/**/DbFulfillmentAssociation.class</exclude>
                         <exclude>com/fulfilment/**/products/**</exclude>
                         <exclude>com/fulfilment/**/stores/Store.class</exclude>
                         <exclude>com/fulfilment/**/domain/models/**</exclude>
